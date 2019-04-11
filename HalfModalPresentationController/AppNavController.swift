@@ -8,7 +8,11 @@
 
 import UIKit
 
-class AppNavController: UINavigationController, HalfModalPresentable {
+class AppNavController: UINavigationController, HalfModalPresentable, Draggable {
+    func draggableArea() -> UIView {
+        return navigationBar
+    }
+    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return isHalfModalMaximized() ? .default : .lightContent
     }

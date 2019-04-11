@@ -9,23 +9,52 @@
 import UIKit
 
 enum ModalScaleState {
-    case adjustedOnce
-    case normal
+    case maxScale
+    case semiScale
+    
+    func obtainFrame(presentContainerFrame: CGRect) -> CGRect {
+        switch self {
+        case .maxScale:
+            // TODO 最大范围
+//            CGRect(origin: CGPoint(x: 0, y: containerFrame.height / 3),
+//                   size: CGSize(width: containerFrame.width, height: containerFrame.height * 2 / 3))
+            return presentContainerFrame
+        case .semiScale:
+            let semiFrame = CGRect(origin: CGPoint(x: 0, y: presentContainerFrame.height / 2),
+                                   size: CGSize(width: presentContainerFrame.width, height: presentContainerFrame.height / 2))
+            return semiFrame
+        }
+    }
+}
+
+enum DragDirection {
+    case down, up
+}
+
+extension DragDirection {
+    init(_ dragOffset: CGFloat) {
+        if dragOffset > 0 {
+            self = .down
+        } else {
+            self = .up
+        }
+    }
 }
 
 class HalfModalPresentationController : UIPresentationController {
     var isMaximized: Bool = false
     
-    var _dimmingView: UIView?
+    var _dimmingView: UIButton?
     var panGestureRecognizer: UIPanGestureRecognizer
-    var direction: CGFloat = 0
-    var state: ModalScaleState = .normal
-    var dimmingView: UIView {
+    var direction: DragDirection = .up
+    var state: ModalScaleState = .semiScale
+    
+    var dimmingView: UIButton {
         if let dimmedView = _dimmingView {
             return dimmedView
         }
         
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: containerView!.bounds.width, height: containerView!.bounds.height))
+        let view = UIButton(frame: CGRect(x: 0, y: 0, width: containerView!.bounds.width, height: containerView!.bounds.height))
         
         // Blur Effect
         let blurEffect = UIBlurEffect(style: .dark)
@@ -40,84 +69,93 @@ class HalfModalPresentationController : UIPresentationController {
         
         // Add the vibrancy view to the blur view
         blurEffectView.contentView.addSubview(vibrancyEffectView)
-        
+        view.addTarget(self, action: #selector(tapDimmingToDismiss), for: .touchUpInside)
         _dimmingView = view
         
         return view
     }
     
-    override init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?) {
+    init(presentedViewController: UIViewController & Draggable, presenting presentingViewController: UIViewController?) {
         self.panGestureRecognizer = UIPanGestureRecognizer()
         super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
         panGestureRecognizer.addTarget(self, action: #selector(onPan(pan:)))
-        presentedViewController.view.addGestureRecognizer(panGestureRecognizer)
+        presentedViewController.draggableArea().addGestureRecognizer(panGestureRecognizer)
     }
     
-    @objc func onPan(pan: UIPanGestureRecognizer) -> Void {
-        let endPoint = pan.translation(in: pan.view?.superview)
+    @objc private func tapDimmingToDismiss() {
+        presentedViewController.dismiss(animated: true, completion: nil) // 继续下滑,那么页面 dismiss
+    }
+    
+    @objc private func onPan(pan: UIPanGestureRecognizer) -> Void {
+        var endPoint = pan.translation(in: pan.view?.superview)
+        endPoint = CGPoint(x: endPoint.x, y: endPoint.y + UIApplication.shared.statusBarFrame.height) // 适配 iPhone X 系列
         
         switch pan.state {
         case .began:
+            print("开始拖曳")
             presentedView!.frame.size.height = containerView!.frame.height
         case .changed:
+            print("拖曳中 ...")
             let velocity = pan.velocity(in: pan.view?.superview)
             print(velocity.y)
             switch state {
-            case .normal:
+            case .semiScale:
                 presentedView!.frame.origin.y = endPoint.y + containerView!.frame.height / 2
-            case .adjustedOnce:
+            case .maxScale:
                 presentedView!.frame.origin.y = endPoint.y
             }
-            direction = velocity.y
-            
-            break
+            direction = DragDirection.init(velocity.y)
         case .ended:
-            if direction < 0 {
-                changeScale(to: .adjustedOnce)
-            } else {
-                if state == .adjustedOnce {
-                    changeScale(to: .normal)
+            print("拖曳完毕")
+            switch direction {
+            case .up:
+                changeScaleOnEndDragging(to: .maxScale)
+            case .down:
+                if state == .maxScale {
+                    changeScaleOnEndDragging(to: .semiScale) // 先滑到部分展示
                 } else {
-                    presentedViewController.dismiss(animated: true, completion: nil)
+                     // 继续下滑,那么页面 dismiss, 这里加了一个优化, 因为从一半位置执行 dismiss, 会有一个短暂的卡顿,所以自己使用动画来实现
+                    UIView.animate(withDuration: 0.1, animations: {
+                        self.presentedView?.frame = CGRect(x: 0, y: UIScreen.main.bounds.height, width: UIScreen.main.bounds.width, height: 0)
+                    }) { (_) in
+                        self.presentedViewController.dismiss(animated: false, completion: nil)
+                    }
                 }
             }
             
             print("finished transition")
-            
-            break
         default:
             break
         }
     }
     
-    func changeScale(to state: ModalScaleState) {
-        if let presentedView = presentedView, let containerView = self.containerView {
-            UIView.animate(withDuration: 0.8, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: { () -> Void in
-                presentedView.frame = containerView.frame
-                let containerFrame = containerView.frame
-                let halfFrame = CGRect(origin: CGPoint(x: 0, y: containerFrame.height / 2),
-                                       size: CGSize(width: containerFrame.width, height: containerFrame.height / 2))
-                let frame = state == .adjustedOnce ? containerView.frame : halfFrame
+    func changeScaleOnEndDragging(to state: ModalScaleState) {
+        guard let presentedView = presentedView, let containerView = self.containerView else { return }
+        
+        UIView.animate(withDuration: 0.8, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 0.1, options: .curveLinear, animations: { () -> Void in
+            presentedView.frame = containerView.frame
+            let containerFrame = containerView.frame
+            let frame = state.obtainFrame(presentContainerFrame: containerFrame)
+            presentedView.frame = frame
+            
+            if let navController = self.presentedViewController as? UINavigationController {
+                self.isMaximized = true
                 
-                presentedView.frame = frame
+                navController.setNeedsStatusBarAppearanceUpdate()
                 
-                if let navController = self.presentedViewController as? UINavigationController {
-                    self.isMaximized = true
-                    
-                    navController.setNeedsStatusBarAppearanceUpdate()
-                    
-                    // Force the navigation bar to update its size
-                    navController.isNavigationBarHidden = true
-                    navController.isNavigationBarHidden = false
-                }
-            }, completion: { (isFinished) in
-                self.state = state
-            })
-        }
+                // Force the navigation bar to update its size
+                navController.isNavigationBarHidden = true
+                navController.isNavigationBarHidden = false
+            }
+        }, completion: { (isFinished) in
+            self.state = state
+        })
     }
     
+    // MARK: - Override Functions
+    // 动画结束时 presentView 的位置和大小
     override var frameOfPresentedViewInContainerView: CGRect {
-        return CGRect(x: 0, y: containerView!.bounds.height / 2, width: containerView!.bounds.width, height: containerView!.bounds.height / 2)
+        return ModalScaleState.semiScale.obtainFrame(presentContainerFrame: containerView!.frame)
     }
     
     override func presentationTransitionWillBegin() {
@@ -131,6 +169,7 @@ class HalfModalPresentationController : UIPresentationController {
             
             coordinator.animate(alongsideTransition: { (context) -> Void in
                 dimmedView.alpha = 1
+                // 对底层页面控制器作缩放操作
                 self.presentingViewController.view.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             }, completion: nil)
         }
@@ -141,7 +180,7 @@ class HalfModalPresentationController : UIPresentationController {
             
             coordinator.animate(alongsideTransition: { (context) -> Void in
                 self.dimmingView.alpha = 0
-                self.presentingViewController.view.transform = CGAffineTransform.identity
+                self.presentingViewController.view.transform = CGAffineTransform.identity // 恢复底层视图大小
             }, completion: { (completed) -> Void in
                 print("done dismiss animation")
             })
@@ -166,7 +205,7 @@ protocol HalfModalPresentable { }
 extension HalfModalPresentable where Self: UIViewController {
     func maximizeToFullScreen() -> Void {
         if let presetation = navigationController?.presentationController as? HalfModalPresentationController {
-            presetation.changeScale(to: .adjustedOnce)
+            presetation.changeScaleOnEndDragging(to: .maxScale)
         }
     }
 }

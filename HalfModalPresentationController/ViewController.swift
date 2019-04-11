@@ -9,27 +9,26 @@
 import UIKit
 
 class ViewController: UIViewController {
-    
-    var halfModalTransitioningDelegate: HalfModalTransitioningDelegate?
-
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
-
+    @IBAction func presentHalf(_ sender: Any) {
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let controller = storyboard.instantiateViewController(withIdentifier: "AppNavController") as! AppNavController
+        presentHalf(viewController: controller)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        super.prepare(for: segue, sender: sender)
-        
-        self.halfModalTransitioningDelegate = HalfModalTransitioningDelegate(viewController: self, presentingViewController: segue.destination)
-        
-        segue.destination.modalPresentationStyle = .custom
-        segue.destination.transitioningDelegate = self.halfModalTransitioningDelegate
-    }
-
 }
 
+extension UIViewController {
+    func presentHalf(viewController: UIViewController & Draggable) {
+        HalfModalTransitioningDelegate.shared.takeoverDelegate(presentingViewController: viewController)
+        present(viewController, animated: true, completion: nil)
+    }
+}

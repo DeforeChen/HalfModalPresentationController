@@ -14,10 +14,6 @@ class ModalViewController: UIViewController, HalfModalPresentable {
     }
     
     @IBAction func cancelButtonTapped(sender: AnyObject) {
-        if let delegate = navigationController?.transitioningDelegate as? HalfModalTransitioningDelegate {
-            delegate.interactiveDismiss = false
-        }
-        
         dismiss(animated: true, completion: nil)
     }
 }

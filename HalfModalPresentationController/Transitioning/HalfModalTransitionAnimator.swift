@@ -8,6 +8,12 @@
 
 import UIKit
 
+enum HalfModalTransitionAnimatorType {
+    case Present
+    case Dismiss
+}
+
+// 由谁负责具体的动画及实现细节
 class HalfModalTransitionAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     
     var type: HalfModalTransitionAnimatorType
@@ -36,9 +42,4 @@ class HalfModalTransitionAnimator: NSObject, UIViewControllerAnimatedTransitioni
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         return 0.4
     }
-}
-
-internal enum HalfModalTransitionAnimatorType {
-    case Present
-    case Dismiss
 }

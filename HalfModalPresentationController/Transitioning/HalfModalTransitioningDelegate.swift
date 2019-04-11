@@ -8,37 +8,28 @@
 
 import UIKit
 
+protocol Draggable {
+    func draggableArea() -> UIView
+}
+
 class HalfModalTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
-    var viewController: UIViewController
-    var presentingViewController: UIViewController
-    var interactionController: HalfModalInteractiveTransition
+    static let shared = HalfModalTransitioningDelegate()
     
-    var interactiveDismiss = false
-    
-    init(viewController: UIViewController, presentingViewController: UIViewController) {
-        self.viewController = viewController
-        self.presentingViewController = presentingViewController
-        self.interactionController = HalfModalInteractiveTransition(viewController: self.viewController, withView: self.presentingViewController.view, presentingViewController: self.presentingViewController)
-        
-        super.init()
+    func takeoverDelegate(presentingViewController: UIViewController & Draggable) {
+        presentingViewController.modalPresentationStyle = .custom
+        presentingViewController.transitioningDelegate  = self
     }
     
+    // MARK: - UIViewControllerTransitioningDelegate
+    // 由谁负责具体的动画及实现细节
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return HalfModalTransitionAnimator(type: .Dismiss)
     }
     
+    // 转场的主管,管理 页面的呈现与被呈现
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
-        return HalfModalPresentationController(presentedViewController: presented, presenting: presenting)
-    }
-    
-    func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        if interactiveDismiss {
-            return self.interactionController
-        }
         
-        return nil
+        guard presented is Draggable else { return nil }
+        return HalfModalPresentationController(presentedViewController: presented as! UIViewController & Draggable, presenting: presenting)
     }
-    
 }
-
-extension UIViewController { }

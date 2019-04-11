@@ -15,7 +15,6 @@
 		D0B87D6D1C4B5C9E00893F23 /* HalfModalPresentationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B87D6C1C4B5C9E00893F23 /* HalfModalPresentationController.swift */; };
 		D0B87D721C4B61B200893F23 /* ModalViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B87D711C4B61B200893F23 /* ModalViewController.swift */; };
 		D0BAB3F61C5AAE7C00F8D28D /* AppNavController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BAB3F51C5AAE7C00F8D28D /* AppNavController.swift */; };
-		D0BAB3F81C5AB43400F8D28D /* HalfModalInteractiveTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BAB3F71C5AB43400F8D28D /* HalfModalInteractiveTransition.swift */; };
 		D0BAB3FA1C5B9F8600F8D28D /* HalfModalTransitionAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BAB3F91C5B9F8600F8D28D /* HalfModalTransitionAnimator.swift */; };
 		D0BAB3FC1C5BB2C000F8D28D /* HalfModalTransitioningDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BAB3FB1C5BB2C000F8D28D /* HalfModalTransitioningDelegate.swift */; };
 /* End PBXBuildFile section */
@@ -31,7 +30,6 @@
 		D0B87D6C1C4B5C9E00893F23 /* HalfModalPresentationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HalfModalPresentationController.swift; path = Presentation/HalfModalPresentationController.swift; sourceTree = "<group>"; };
 		D0B87D711C4B61B200893F23 /* ModalViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModalViewController.swift; sourceTree = "<group>"; };
 		D0BAB3F51C5AAE7C00F8D28D /* AppNavController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppNavController.swift; sourceTree = "<group>"; };
-		D0BAB3F71C5AB43400F8D28D /* HalfModalInteractiveTransition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HalfModalInteractiveTransition.swift; path = Transitioning/HalfModalInteractiveTransition.swift; sourceTree = "<group>"; };
 		D0BAB3F91C5B9F8600F8D28D /* HalfModalTransitionAnimator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HalfModalTransitionAnimator.swift; path = Transitioning/HalfModalTransitionAnimator.swift; sourceTree = "<group>"; };
 		D0BAB3FB1C5BB2C000F8D28D /* HalfModalTransitioningDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HalfModalTransitioningDelegate.swift; path = Transitioning/HalfModalTransitioningDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -92,7 +90,6 @@
 			isa = PBXGroup;
 			children = (
 				D0BAB3FB1C5BB2C000F8D28D /* HalfModalTransitioningDelegate.swift */,
-				D0BAB3F71C5AB43400F8D28D /* HalfModalInteractiveTransition.swift */,
 				D0BAB3F91C5B9F8600F8D28D /* HalfModalTransitionAnimator.swift */,
 			);
 			name = Transitioning;
@@ -178,7 +175,6 @@
 				D0B87D6D1C4B5C9E00893F23 /* HalfModalPresentationController.swift in Sources */,
 				D0BAB3F61C5AAE7C00F8D28D /* AppNavController.swift in Sources */,
 				D0BAB3FA1C5B9F8600F8D28D /* HalfModalTransitionAnimator.swift in Sources */,
-				D0BAB3F81C5AB43400F8D28D /* HalfModalInteractiveTransition.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
